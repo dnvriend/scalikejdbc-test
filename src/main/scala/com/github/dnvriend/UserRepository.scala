@@ -46,9 +46,9 @@ class UserRepository @Inject() (implicit ec: ExecutionContext) {
 
   def allUsers: Future[List[UserTableRow]] = withFuture(sql"""select * from "users" ORDER BY id;""".map(toRow).list().apply())
   def findById(userId: Long): Future[Option[UserTableRow]] = withFuture(sql"""select * from "users" where id = ${userId};""".map(toRow).single().apply())
-  def clear: Future[Boolean] = withLocalTransaction(sql"""TRUNCATE TABLE "users";""".execute().apply)
-  def drop: Future[Boolean] = withLocalTransaction(sql"""DROP TABLE IF EXISTS "users";""".execute().apply)
-  def create: Future[Boolean] = withLocalTransaction(sql"""CREATE TABLE IF NOT EXISTS "users" (id SERIAL, first VARCHAR(255) NOT NULL, last VARCHAR(255) NOT NULL);""".execute().apply)
+  def clear: Future[Unit] = withLocalTransaction(sql"""TRUNCATE TABLE "users";""".execute().apply).map(_ => ())
+  def drop: Future[Unit] = withLocalTransaction(sql"""DROP TABLE IF EXISTS "users";""".execute().apply).map(_ => ())
+  def create: Future[Unit] = withLocalTransaction(sql"""CREATE TABLE IF NOT EXISTS "users" (id SERIAL, first VARCHAR(255) NOT NULL, last VARCHAR(255) NOT NULL);""".execute().apply).map(_ => ())
 
   def dropCreateSchema: Future[Unit] =
     create.map(_ => ())

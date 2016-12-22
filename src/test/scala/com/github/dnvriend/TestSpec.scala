@@ -34,6 +34,8 @@ import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.reflect.ClassTag
 import scala.util.Try
+import scalaz._
+import Scalaz._
 
 class TestSpec extends FlatSpec
     with Matchers
@@ -86,14 +88,15 @@ class TestSpec extends FlatSpec
   }
 
   override protected def beforeEach(): Unit = {
-    userRepository.dropCreateSchema.toTry should be a 'success
-    userRepository.clear.toTry should be a 'success
-    userRepository.allUsers.futureValue shouldBe empty
+    (userRepository.dropCreateSchema >> userRepository.clear).toTry should be a 'success
   }
 
+  def terminate: Future[Unit] = for {
+    _ <- system.terminate()
+    _ <- system.whenTerminated
+  } yield ()
+
   override protected def afterAll(): Unit = {
-    userRepository.clear.toTry should be a 'success
-    system.terminate().toTry should be a 'success
-    system.whenTerminated.toTry should be a 'success
+    (userRepository.clear >> terminate).toTry should be a 'success
   }
 }
